@@ -29,8 +29,8 @@ def get_sum(request):
         n1 = request.GET.get("n1")
         n2 = request.GET.get("n2")
         try:
-            n1_float = int(n1)
-            n2_float = int(n2)
+            n1_float = float(n1)
+            n2_float = float(n2)
             sum = n1_float + n2_float
             return HttpResponse(str(sum))
         except ValueError:
