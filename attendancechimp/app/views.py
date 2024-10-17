@@ -39,6 +39,7 @@ def get_sum(request):
             n1_float = float(n1)
             n2_float = float(n2)
             sum = n1_float + n2_float
+            sum = int(sum) if sum.is_integer() else sum
             return HttpResponse(str(sum))
         except ValueError:
             return HttpResponse(status=400)
