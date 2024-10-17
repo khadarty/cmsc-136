@@ -3,7 +3,7 @@ from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from .models import *
 from datetime import datetime
-import datetime
+import pytz
 
 @csrf_exempt
 def index(request):
