@@ -10,7 +10,6 @@ def index(request):
 @csrf_exempt
 def handle_form(request):
 
-dhhosdodls
     new_course = Course(cname, cnum)
     new_course.save()
 
