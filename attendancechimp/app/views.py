@@ -60,7 +60,7 @@ def createUser(request):
 
         # Check if user with email already exists
         if User.objects.filter(email=email).exists():
-            return JsonResponse({'error': 'A user with this email already exists.'}, status=200)
+            return JsonResponse({'error': 'A user with this email already exists.'}, status=400)
 
         # Create the user
         user = User.objects.create_user(username=user_name, email=email, password=password)
