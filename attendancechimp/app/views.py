@@ -11,9 +11,9 @@ from datetime import datetime
 from django.views.decorators.csrf import csrf_exempt
 import pytz
 
-@csrf_exempt
-def index(request):
-    return render(request, 'app/index.html', {})
+# @csrf_exempt
+# def index(request):
+#     return render(request, 'app/index.html', {})
 
 @csrf_exempt
 def handle_form(request):
