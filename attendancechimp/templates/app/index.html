@@ -4,10 +4,40 @@
 {% block title %}Home{% endblock %}
 
 {% block content %}
-{% if user.is_authenticated %}
-  Hi {{ user.username }}!
-{% else %}
-  <p>You are not logged in</p>
-  <a href="{% url 'login' %}">Log In</a>
-{% endif %}
+
+<style>
+  .centered-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center; 
+      justify-content: center; 
+      min-height: 100vh; 
+      text-align: center;
+  }
+
+  .highlighted-username {
+      font-weight: bold;
+      background-color: yellow;
+      padding: 0 5px;
+      border-radius: 3px;
+  }
+</style>
+
+<div class="centered-container">
+  <div class="bio">
+    <p>{{ bio }}</p>
+  </div>
+  {% if user.is_authenticated %}
+  <p>Hi, <span class="highlighted-username">{{ user.username }}</span>!</p>
+    
+  {% else %}
+    <p>You are not logged in</p>
+    <!-- <a href="{% url 'login' %}">Log In</a> -->
+  {% endif %}
+
+  <div>
+    <p>Current Time: {{current_time}}</p>
+  </div>
+</div>
 {% endblock %}
+

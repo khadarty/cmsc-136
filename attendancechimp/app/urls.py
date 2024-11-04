@@ -7,5 +7,8 @@ urlpatterns = [
     path('', views.index, name='index'),
     path("time", views.get_central, name = "get_central"),
     path("sum",views.get_sum, name = "get_sum"),
+    path("createUser",views.createUser, name = "createUser"),
+    path("new",views.new_user_form, name = "new_user_form"),
     #path('handleform', views.handle_form, name='form'),
 ]
+
