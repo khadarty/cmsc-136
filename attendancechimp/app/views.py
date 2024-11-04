@@ -52,20 +52,24 @@ def new_user_form(request):
 @require_http_methods(["POST"])
 @csrf_exempt
 def createUser(request):
-    email = request.POST.get('email')
-    user_name = request.POST.get('user_name')
-    password = request.POST.get('password')
-    is_student = request.POST.get('is_student') == 1
-    if User.objects.filter(email=email).exists():
-        return JsonResponse({'error': 'A user with this email already exists.'}, status=400) 
+    if request.method == 'POST':
+        email = request.POST.get('email')
+        user_name = request.POST.get('user_name')
+        password = request.POST.get('password')
+        is_student = request.POST.get('is_student') == '1'
+
+        # Check if user with email already exists
+        if User.objects.filter(email=email).exists():
+            return JsonResponse({'error': 'A user with this email already exists.'}, status=200)
+
+        # Create the user
+        user = User.objects.create_user(username=user_name, email=email, password=password)
+        user.save()
+
+        # Return success response
+        return JsonResponse({'success': 'User created successfully.'}, status=200)
     
-    user = User.objects.create_user(username=user_name, email=email, password=password)
-    user.profile.is_student = is_student  
-    user.save()
-    
-    
-    login(request, user)
-    return JsonResponse({'success': 'User created and signed in successfully.'})
+    return JsonResponse({'error': 'Invalid request method.'}, status=405)
 
 @login_required
 def index(request):
