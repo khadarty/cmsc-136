@@ -9,11 +9,16 @@
 <html lang = 'en'>
 <head>
   <meta charset="UTF-8">
-  <title>Sign Up <3</title>
+  <title>Sign Up</title>
   <style>
     body {
-       text-align: center;
-       font-family:Arial, Helvetica, sans-serif
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
     }
   
     .highlighted-username {
@@ -37,11 +42,11 @@
   
 
   {% else %}
-    <p>Not logged in</p>
+    <p>You are not logged in</p>
     <!-- <a href="{% url 'login' %}">Log In</a> -->
   {% endif %}
   </div>
-  
+
   <div>
     <p>Current Time: {{current_time}}</p>
   </div>

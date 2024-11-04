@@ -8,6 +8,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth import login
 from .models import *
 from datetime import datetime
+from django.views.decorators.csrf import csrf_exempt
 import pytz
 
 @csrf_exempt
@@ -49,6 +50,7 @@ def new_user_form(request):
     return render(request, 'app/new_user_form.html')
 
 @require_http_methods(["POST"])
+@csrf_exempt
 def createUser(request):
     email = request.POST.get('email')
     user_name = request.POST.get('user_name')
