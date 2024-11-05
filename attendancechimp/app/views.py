@@ -74,7 +74,8 @@ def createUser(request):
 # @login_required
 def index(request):
   
-    current_time = timezone.now().strftime("%Y-%m-%d %H:%M:%S")
+    chicago_time = timezone.now().astimezone(pytz.timezone("America/Chicago"))
+    current_time = chicago_time.strftime("%H:%M") 
  
     current_user = request.user.username if request.user.is_authenticated else "Guest"
  
