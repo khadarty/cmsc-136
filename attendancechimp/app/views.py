@@ -71,7 +71,7 @@ def createUser(request):
     
     return JsonResponse({'error': 'Invalid request method.'}, status=405)
 
-@login_required
+# @login_required
 def index(request):
   
     current_time = timezone.now().strftime("%Y-%m-%d %H:%M:%S")
