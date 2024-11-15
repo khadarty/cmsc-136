@@ -12,6 +12,7 @@ import pytz
 from django.utils import timezone
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
+from django.contrib.auth import authenticate
 
 
 @csrf_exempt
@@ -135,7 +136,7 @@ def createCourse(request):
             end_time = request.POST.get("end-time")
             days = [day for day in ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"] 
                     if request.POST.get(f"day-{day[:3].lower()}") in [True, "1"]]
-            
+
             # Check required fields
             if course_name and start_time and end_time and days:
                 try:
@@ -144,14 +145,14 @@ def createCourse(request):
                         name=course_name,
                         start_time=start_time,
                         end_time=end_time,
-                        days_of_week=",".join(days),
+                        days_of_week=",".join(days)
                         #instructor=request.user.username
                     )
                     course.save()
                     return JsonResponse({"success": "Course created successfully"}, status=200)
                 
                 except Exception as e:
-                    print(f"Error saving course: {e}")
+                    print(f"Error in createCourse: {e}")
                     return JsonResponse({"error": "Internal server error"}, status=500)
             else:
                 return JsonResponse({"error": "All fields are required."}, status=400)
@@ -203,8 +204,13 @@ def createQRCodeUpload(request):
 
 @login_required
 def dumpUploads(request):
-    # Check if the user is logged in and is an instructor
-    if request.user.is_authenticated and hasattr(request.user, 'userprofile') and not request.user.userprofile.is_student:
+    # Check if the user is logged in
+    if not request.user.is_authenticated:
+        # Return 401 if not authenticated
+        return HttpResponse("Unauthorized", status=401)
+
+    # Check if the user is an instructor
+    if hasattr(request.user, 'userprofile') and not request.user.userprofile.is_student:
         # Retrieve all uploads and create the list of dictionaries
         obj = [
             {
@@ -217,5 +223,5 @@ def dumpUploads(request):
         # Return the list in JSON format
         return JsonResponse(obj, safe=False)
     
-    # Return an empty response if user is not an instructor
-    return HttpResponse("", status=401)
+    # Return 401 if the user is not an instructor
+    return HttpResponse("Unauthorized", status=401)

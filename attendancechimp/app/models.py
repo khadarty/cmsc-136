@@ -18,8 +18,8 @@ class Instructor(models.Model):
 
 
 class Course(models.Model):
-    name = models.CharField(max_length=100, unique=True, null=True)
-    # instructor = models.ForeignKey(Instructor, on_delete=models.CASCADE, related_name='courses', null=True)
+    name = models.CharField(max_length=100, null=True)
+    #instructor = models.ForeignKey(Instructor, on_delete=models.CASCADE, related_name='courses', null=True)
     start_time = models.TimeField(null=True)  # Field to store start time of the course
     end_time = models.TimeField(null=True)    # Field to store end time of the course
     days_of_week = models.CharField(max_length=100, null=True)    # Field to store days of the week as a comma-separated string
