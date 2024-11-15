@@ -145,7 +145,7 @@ def createCourse(request):
                         start_time=start_time,
                         end_time=end_time,
                         days_of_week=",".join(days),
-                        instructor=request.user.userprofile.instructor
+                        #instructor=request.user.username
                     )
                     course.save()
                     return JsonResponse({"success": "Course created successfully"}, status=200)
@@ -192,7 +192,7 @@ def createQRCodeUpload(request):
             file_path = default_storage.save(f"uploads/{image.name}", image)
             
             # Save file information to QRCodeUpload model (adjust fields as needed)
-            qr_upload = QR_Code(student=request.user.userprofile.student, qr_image=image)
+            qr_upload = QR_Code(student=request.user.username, qr_image=image)
             qr_upload.save()
             return JsonResponse({"success": "QR Code uploaded successfully"}, status=200)
 
@@ -208,7 +208,7 @@ def dumpUploads(request):
         # Retrieve all uploads and create the list of dictionaries
         obj = [
             {
-                "name": upload.student.name,  # Adjust if your model stores the username differently
+                "name": request.user.username,  # Adjust if your model stores the username differently
                 "upload_time": upload.timestamp.strftime("%Y-%m-%d %H:%M:%S")
             }
             for upload in QR_Code.objects.all()
