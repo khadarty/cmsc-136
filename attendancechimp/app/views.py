@@ -202,12 +202,11 @@ def createQRCodeUpload(request):
     return HttpResponse("Unauthorized", status=401)
 
 
-@login_required
 def dumpUploads(request):
     # Check if the user is logged in
     if not request.user.is_authenticated:
         # Return 401 if not authenticated
-        return HttpResponse("Unauthorized", status=401)
+        return HttpResponse("", status=401)
 
     # Check if the user is an instructor
     if hasattr(request.user, 'userprofile') and not request.user.userprofile.is_student:
@@ -224,4 +223,4 @@ def dumpUploads(request):
         return JsonResponse(obj, safe=False)
     
     # Return 401 if the user is not an instructor
-    return HttpResponse("Unauthorized", status=401)
+    return HttpResponse("", status=401)
