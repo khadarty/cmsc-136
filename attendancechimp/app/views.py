@@ -144,7 +144,8 @@ def createCourse(request):
                         name=course_name,
                         start_time=start_time,
                         end_time=end_time,
-                        days_of_week=",".join(days)
+                        days_of_week=",".join(days),
+                        instructor=request.user.userprofile.instructor
                     )
                     course.save()
                     return JsonResponse({"success": "Course created successfully"}, status=200)
