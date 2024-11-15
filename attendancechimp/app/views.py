@@ -1,3 +1,4 @@
+from django.core.files.storage import default_storage
 from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from .models import User, UserProfile
@@ -126,55 +127,53 @@ def new_qr_upload(request):
 
 @csrf_exempt
 def createCourse(request):
-    # Check if the user is authenticated and an instructor
     if request.user.is_authenticated and hasattr(request.user, 'userprofile') and not request.user.userprofile.is_student:
         if request.method == "POST":
-            # Extract form data
+            # Extract and validate form data
             course_name = request.POST.get("course-name")
             start_time = request.POST.get("start-time")
             end_time = request.POST.get("end-time")
-            
-            # Retrieve selected days and join them as a string
             days = [day for day in ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"] 
-                    if request.POST.get(f"day-{day[:3].lower()}")]
-
-            # Create new course if all required fields are provided
+                    if request.POST.get(f"day-{day[:3].lower()}") in [True, "1"]]
+            
+            # Check required fields
             if course_name and start_time and end_time and days:
-                course = Course(
-                    name=course_name,
-                    start_time=start_time,
-                    end_time=end_time,
-                    days_of_week=",".join(days)  # Assuming this field is a CharField in your model
-                )
-                course.save()
-                return redirect("course_create_success")  # Redirect to a success page if you have one
-
+                try:
+                    # Save course
+                    course = Course(
+                        name=course_name,
+                        start_time=start_time,
+                        end_time=end_time,
+                        days_of_week=",".join(days)
+                    )
+                    course.save()
+                    return JsonResponse({"success": "Course created successfully"}, status=200)
+                
+                except Exception as e:
+                    print(f"Error saving course: {e}")
+                    return JsonResponse({"error": "Internal server error"}, status=500)
             else:
-                return render(request, 'app/new_course.html', {'error': "All fields are required."})
+                return JsonResponse({"error": "All fields are required."}, status=400)
 
-        # Render form if GET request
-        return render(request, 'app/new_course.html')
-
-    # Render an error message for unauthorized access
-    return HttpResponse("Unauthorized", status=401)
+    return JsonResponse({"error": "Unauthorized"}, status=401)
 
 
 @csrf_exempt  # Remove if CSRF protection is enabled
 def createLecture(request):
     if request.user.is_authenticated and hasattr(request.user, 'userprofile') and not request.user.userprofile.is_student:
         if request.method == "POST":
-            course_id = request.POST.get("choice")
-            if course_id:
+            name = request.POST.get("choice")
+            if name:
                 # Retrieve the course and create a new lecture associated with it
                 try:
-                    course = Course.objects.get(id=course_id)
+                    course = Course.objects.get(name=name)
                     lecture = Lecture(course=course)
                     lecture.save()
-                    return redirect("lecture_create_success")  # Redirect to a success page if available
+                    return JsonResponse({"success": "Lecture created successfully"}, status=200)
                 except Course.DoesNotExist:
-                    return render(request, 'app/new_lecture.html', {'error': "Invalid course selected."})
+                    return JsonResponse({"error": "Internal server error"}, status=500)
 
-            return render(request, 'app/new_lecture.html', {'error': "Please select a course."})
+            return JsonResponse({"error": "All fields are required."}, status=400)
 
         # If GET request, fetch all courses and display the form
         courses = Course.objects.all()  # Adjust query if only certain courses should be shown
@@ -192,9 +191,9 @@ def createQRCodeUpload(request):
             file_path = default_storage.save(f"uploads/{image.name}", image)
             
             # Save file information to QRCodeUpload model (adjust fields as needed)
-            qr_upload = QRCodeUpload(student=request.user, image_path=file_path)
+            qr_upload = QR_Code(student=request.user.userprofile.student, qr_image=image)
             qr_upload.save()
-            return redirect("qr_upload_success")  # Redirect to a success page if available
+            return JsonResponse({"success": "QR Code uploaded successfully"}, status=200)
 
         return render(request, 'app/new_qr_upload.html', {'errors': "Please select a file to upload."})
 
@@ -208,10 +207,10 @@ def dumpUploads(request):
         # Retrieve all uploads and create the list of dictionaries
         obj = [
             {
-                "username": upload.student.username,  # Adjust if your model stores the username differently
+                "name": upload.student.name,  # Adjust if your model stores the username differently
                 "upload_time": upload.timestamp.strftime("%Y-%m-%d %H:%M:%S")
             }
-            for upload in QRCodeUpload.objects.all()
+            for upload in QR_Code.objects.all()
         ]
         
         # Return the list in JSON format
