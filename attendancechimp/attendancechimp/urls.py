@@ -23,5 +23,6 @@ urlpatterns = [
     path('index.html', include('app.urls')), 
     path('app/', include('app.urls')),
     path('admin/', admin.site.urls),
-    path("accounts/", include("django.contrib.auth.urls"))
+    path("accounts/", include("django.contrib.auth.urls")),
+    path("dummypage", views.dummypage, name="index")
 ]

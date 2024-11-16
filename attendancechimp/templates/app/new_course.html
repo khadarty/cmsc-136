@@ -1,35 +1,57 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Create New Course</title>
-</head>
-<body>
-    <h1>Create a New Course</h1>
-    <form action="/app/createCourse" method="post">
-        {% csrf_token %}
-        <label for="course-name">Course Name:</label>
-        <input type="text" id="course-name" name="course-name" required><br><br>
+<!-- templates/home.html -->
+{% extends 'base.html' %}
 
-        <label for="start-time">Start Time:</label>
-        <input type="time" id="start-time" name="start-time" required><br><br>
+{% block title %}Create Course{% endblock %}
 
-        <label for="end-time">End Time:</label>
-        <input type="time" id="end-time" name="end-time" required><br><br>
+{% block content %}
+{% if user.is_authenticated %}
+  
+  {% if is_student %}
 
-        <label>Days:</label><br>
-        <input type="checkbox" id="mon" name="day-mon">
-        <label for="mon">Monday</label><br>
-        <input type="checkbox" id="tue" name="day-tue">
-        <label for="tue">Tuesday</label><br>
-        <input type="checkbox" id="wed" name="day-wed">
-        <label for="wed">Wednesday</label><br>
-        <input type="checkbox" id="thu" name="day-thu">
-        <label for="thu">Thursday</label><br>
-        <input type="checkbox" id="fri" name="day-fri">
-        <label for="fri">Friday</label><br><br>
+  	<h2>Students cannot do this!</h2>
 
-        <button type="submit">Create Course</button>
-    </form>
+  {% else %}
+
+  	  <h2>Create A New Course</h2>
+
+	  <form action="http://localhost:8000/app/createCourse" method="post">
+
+  <label for="course-name">Course Name:</label><br>
+  <input type="text" id="course-name" name="course-name"><br><br>
+
+  <label for="start-time">Start Time:</label><br>
+  <input type="time" id="start-time" name="start-time"><br><br>
+
+  <label for="end-time">End Time:</label><br>
+  <input type="time" id="end-time" name="end-time"><br><br>
+
+  <label>Days of the Week:</label><br>
+  <input type="checkbox" id="day-mon" name="day-mon" value="Monday">
+  <label for="day-mon">Monday</label><br>
+  <input type="checkbox" id="day-tue" name="day-tue" value="Tuesday">
+  <label for="day-tue">Tuesday</label><br>
+  <input type="checkbox" id="day-wed" name="day-wed" value="Wednesday">
+  <label for="day-wed">Wednesday</label><br>
+  <input type="checkbox" id="day-thu" name="day-thu" value="Thursday">
+  <label for="day-thu">Thursday</label><br>
+  <input type="checkbox" id="day-fri" name="day-fri" value="Friday">
+  <label for="day-fri">Friday</label><br>
+
+  <input type="submit" value="Submit">
+</form>
+
 </body>
 </html>
+	  </form>
+
+  {% endif %}
+
+{% else %}
+  
+  <h2>You need to be logged in to see this page</h2>
+
+</form>
+
+{% endif %}
+
+{% endblock %}

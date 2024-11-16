@@ -1,29 +1,56 @@
+from django.core.files.storage import default_storage
 from django.shortcuts import render, redirect
-from django.http import HttpResponse, JsonResponse
-from django.contrib.auth.models import User
-from django.views.decorators.http import require_http_methods
-from django.views.decorators.csrf import csrf_exempt
-from django.utils import timezone
-from django.contrib.auth.decorators import login_required
+from django.http import HttpResponse
+from .models import User, UserProfile
+from django.contrib.auth import get_user_model
 from django.contrib.auth import login
+from django.db import IntegrityError
+from django.views.decorators.csrf import csrf_exempt
 from .models import *
 from datetime import datetime
-from django.views.decorators.csrf import csrf_exempt
 import pytz
+from django.utils import timezone
+from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse
+from django.contrib.auth import authenticate
 
-# @csrf_exempt
-# def index(request):
-#     return render(request, 'app/index.html', {})
+
+@csrf_exempt
+def index(request):
+
+    team_bio = [
+        {"Name": "Delicia", "Bio": "Delicia is a fourth-year at the University of Chicago studying Economics and Data Science. She runs on the cross country and track and field teams, enjoys trying new restaurants, and is pursuing a career in finance."},
+        {"Name": "Khadijat", "Bio": "Khadijat is a fourth-year at the University of Chicago studying Data Science. She has a fostered cat named Soup who lives with her on campus, enjoys knitting in her free time, and is planning to pursue a career in software engineering or data science."}
+    ]
+
+    current_user = request.user
+
+    current_time = timezone.now().strftime("%Y-%m-%d %H:%M:%S")
+
+    context = {
+        "team_bio": team_bio,
+        "current_user": current_user,
+        "current_time": current_time
+    }
+
+    return render(request, 'app/index.html', context)
+
 
 @csrf_exempt
 def handle_form(request):
+
+    cname = request.POST['cname']
+    cnum =  request.POST['cnum']
+
+    print(cname, cnum)
 
     new_course = Course(cname, cnum)
     new_course.save()
 
     return render(request, 'app/index.html', {})
 
-def get_central(request):
+
+def get_ct(request):
     if request.method == "GET":
         ct = datetime.now(pytz.timezone("America/Chicago"))
         hr = ct.hour
@@ -31,7 +58,8 @@ def get_central(request):
         five_string = f"{hr:02}:{min:02}"
         return HttpResponse(five_string)
     return HttpResponse(status=405)
-    
+
+
 def get_sum(request):
     if request.method == "GET":
         n1 = request.GET.get("n1")
@@ -40,107 +68,159 @@ def get_sum(request):
             n1_float = float(n1)
             n2_float = float(n2)
             sum = n1_float + n2_float
+            sum = int(sum) if sum.is_integer() else sum
             return HttpResponse(str(sum))
         except ValueError:
             return HttpResponse(status=400)
-    return HttpResponse(status=405)   
+    return HttpResponse(status=405)
 
-@require_http_methods(["GET"])
-def new_user_form(request):
-    return render(request, 'app/new_user_form.html')
 
-@require_http_methods(["POST"])
+def sign_up(request):
+    if request.method == "GET":
+        return render(request, 'app/sign_up_form.html')
+    return HttpResponse(status=405)
+
+
+User = get_user_model()
+
 @csrf_exempt
-def createUser(request):
-    if request.method == 'POST':
+def create_user(request):
+    if request.method == "POST":
         email = request.POST.get('email')
         user_name = request.POST.get('user_name')
         password = request.POST.get('password')
-        is_student = request.POST.get('is_student') == '1'
+        is_student = request.POST.get('is_student') in ['true', '1']
 
-       
         if User.objects.filter(email=email).exists():
-            return JsonResponse({'error': 'A user with this email already exists.'}, status=400)
+            return HttpResponse("This email is already in use", status=400)
 
-        
-        user = User.objects.create_user(username=user_name, email=email, password=password)
-        user.save()
+        try:
+            user = User.objects.create_user(email=email, username=user_name, password=password)
+            UserProfile.objects.create(user=user, is_student=is_student)
 
-        
-        return JsonResponse({'success': 'User created successfully.'}, status=200)
-    
-    return JsonResponse({'error': 'Invalid request method.'}, status=405)
-
-# @login_required
-def index(request):
-  
-    chicago_time = timezone.now().astimezone(pytz.timezone("America/Chicago"))
-    current_time = chicago_time.strftime("%H:%M") 
- 
-    current_user = request.user.username if request.user.is_authenticated else "Guest"
- 
-    bio = "Khadijat Durojaiye!"
-
-    context = {
-        'current_time': current_time,
-        'current_user': current_user,
-        'bio': bio,
-    }
-    
-    return render(request, 'app/index.html', context)
-
-# def bio(request):
-#     bio_text = 'Khadijat Durojaiye. Bing bong.'
-#     return render(request, 'index.html', {'bio_text': bio_text})
-# def time_now(request):
-#     current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-#     context = {
-#         'bio_text': "This is my bio text.",  
-#         'current_time': current_time,
-#     }
-    
-#     return render(request, 'index.html', context)
-    
-@csrf_exempt
-def create_course(request):
-    if not request.user.is_authenticated or not request.user.is_instructor:
-        return HttpResponse(status=401)
-    if request.method == "POST":
-        course_name = request.POST.get("course-name")
-        start_time = request.POST.get("start-time")
-        end_time = request.POST.get("end-time")
-        days = [day for day in ["mon", "tue", "wed", "thu", "fri"] if request.POST.get(f"day-{day}")]
-        
-        Course.objects.create(name=course_name, start_time=start_time, end_time=end_time, days=days)
-        return JsonResponse({"status": "Course created"}, status=201)
-    return HttpResponse(status=405)
-
-@csrf_exempt
-def create_lecture(request):
-    if not request.user.is_authenticated or not request.user.is_instructor:
-        return HttpResponse(status=401)
-    if request.method == "POST":
-        course_id = request.POST.get("choice")
-        course = Course.objects.get(id=course_id)
-        Lecture.objects.create(course=course)
-        return JsonResponse({"status": "Lecture created"}, status=201)
-    return HttpResponse(status=405)
-
-@csrf_exempt
-def create_qr_upload(request):
-    if not request.user.is_authenticated or not request.user.is_student:
-        return HttpResponse(status=401)
-    if request.method == "POST":
-        image = request.FILES.get("imageUpload")
-        QRCodeUpload.objects.create(user=request.user, image=image)
-        return JsonResponse({"status": "Upload created"}, status=201)
+            login(request, user)
+            return HttpResponse("User created and logged in successfully")
+        except IntegrityError:
+            return HttpResponse("Unable to create user", status=500)
     return HttpResponse(status=405)
 
 
-@login_required
-def dump_uploads(request):
-    if not request.user.is_instructor:
-        return HttpResponse(status=401)
-    uploads = QRCodeUpload.objects.all()
-    data = [{"username": upload.user.username, "upload_time": upload.upload_time.strftime("%Y-%m-%d %H:%M:%S")} for upload in uploads]
-    return JsonResponse(data, safe=False)
+@csrf_exempt
+def new_course(request):
+    if request.method == "GET":
+        return render(request, 'app/new_course.html')
+    return HttpResponse(status=405)
+
+
+@csrf_exempt
+def new_lecture(request):
+    if request.method == "GET":
+        return render(request, 'app/new_lecture.html')
+    return HttpResponse(status=405)
+
+
+@csrf_exempt
+def new_qr_upload(request):
+    if request.method == "GET":
+        return render(request, 'app/new_qr_upload.html')
+    return HttpResponse(status=405)
+
+
+@csrf_exempt
+def createCourse(request):
+    if request.user.is_authenticated and hasattr(request.user, 'userprofile') and not request.user.userprofile.is_student:
+        if request.method == "POST":
+            # Extract and validate form data
+            course_name = request.POST.get("course-name")
+            start_time = request.POST.get("start-time")
+            end_time = request.POST.get("end-time")
+            days = [day for day in ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"] 
+                    if request.POST.get(f"day-{day[:3].lower()}") in [True, "1"]]
+
+            # Check required fields
+            if course_name and start_time and end_time and days:
+                try:
+                    # Save course
+                    course = Course(
+                        name=course_name,
+                        start_time=start_time,
+                        end_time=end_time,
+                        days_of_week=",".join(days)
+                        #instructor=request.user.username
+                    )
+                    course.save()
+                    return JsonResponse({"success": "Course created successfully"}, status=200)
+                
+                except Exception as e:
+                    print(f"Error in createCourse: {e}")
+                    return JsonResponse({"error": "Internal server error"}, status=500)
+            else:
+                return JsonResponse({"error": "All fields are required."}, status=400)
+
+    return JsonResponse({"error": "Unauthorized"}, status=401)
+
+
+@csrf_exempt  # Remove if CSRF protection is enabled
+def createLecture(request):
+    if request.user.is_authenticated and hasattr(request.user, 'userprofile') and not request.user.userprofile.is_student:
+        if request.method == "POST":
+            name = request.POST.get("choice")
+            if name:
+                # Retrieve the course and create a new lecture associated with it
+                try:
+                    course = Course.objects.get(name=name)
+                    lecture = Lecture(course=course)
+                    lecture.save()
+                    return JsonResponse({"success": "Lecture created successfully"}, status=200)
+                except Course.DoesNotExist:
+                    return JsonResponse({"error": "Internal server error"}, status=500)
+
+            return JsonResponse({"error": "All fields are required."}, status=400)
+
+        # If GET request, fetch all courses and display the form
+        courses = Course.objects.all()  # Adjust query if only certain courses should be shown
+        return render(request, 'app/new_lecture.html', {'courses': courses})
+
+    return HttpResponse("Unauthorized", status=401)
+
+
+@csrf_exempt  # Remove if CSRF protection is enabled
+def createQRCodeUpload(request):
+    if request.user.is_authenticated and hasattr(request.user, 'userprofile') and request.user.userprofile.is_student:
+        if request.method == "POST" and request.FILES.get("imageUpload"):
+            image = request.FILES["imageUpload"]
+            # Optionally, save file to a specific location
+            file_path = default_storage.save(f"uploads/{image.name}", image)
+            
+            # Save file information to QRCodeUpload model (adjust fields as needed)
+            qr_upload = QR_Code(student=request.user.username, qr_image=image)
+            qr_upload.save()
+            return JsonResponse({"success": "QR Code uploaded successfully"}, status=200)
+
+        return render(request, 'app/new_qr_upload.html', {'errors': "Please select a file to upload."})
+
+    return HttpResponse("Unauthorized", status=401)
+
+
+def dumpUploads(request):
+    # Check if the user is logged in
+    if not request.user.is_authenticated:
+        # Return 401 if not authenticated
+        return HttpResponse("", status=401)
+
+    # Check if the user is an instructor
+    if hasattr(request.user, 'userprofile') and not request.user.userprofile.is_student:
+        # Retrieve all uploads and create the list of dictionaries
+        obj = [
+            {
+                "name": request.user.username,  # Adjust if your model stores the username differently
+                "upload_time": upload.timestamp.strftime("%Y-%m-%d %H:%M:%S")
+            }
+            for upload in QR_Code.objects.all()
+        ]
+        
+        # Return the list in JSON format
+        return JsonResponse(obj, safe=False)
+    
+    # Return 401 if the user is not an instructor
+    return HttpResponse("", status=401)

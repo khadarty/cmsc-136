@@ -5,20 +5,15 @@ from . import views
 urlpatterns = [
     path('handleform', views.handle_form, name='form'),
     path('', views.index, name='index'),
-    path('index.html', views.index, name='index_html'),
-    path("time", views.get_central, name = "get_central"),
-    path("sum",views.get_sum, name = "get_sum"),
-    path("createUser",views.createUser, name = "createUser"),
-    path("new",views.new_user_form, name = "new_user_form"),
-    path('dummypage/', views.index, name='dummypage'),
-    #new ones starting from here
-    path('new_course', views.new_course, name='course_create'),
-    path('new_lecture', views.new_lecture, name='lecture_create'),
-    path('new_qr_upload', views.new_qr_upload, name='qr_upload'),
-    path('createCourse', views.create_course, name='create_course'),
-    path('createLecture', views.create_lecture, name='create_lecture'),
-    path('createQRCodeUpload', views.create_qr_upload, name='create_qr_upload'),
-    
-    #path('handleform', views.handle_form, name='form'),
+    path("time", views.get_ct, name="get_ct"),
+    path("sum", views.get_sum, name="get_sum"),
+    path("new", views.sign_up, name="sign_up"),
+    path("createUser", views.create_user, name="create_user"),
+    path('new_course', views.new_course, name='course_create'), # course_create: localhost:8000/app/new_course
+    path('new_lecture', views.new_lecture, name='qr_create'), # qr_create: localhost:8000/app/new_lecture
+    path('new_qr_upload', views.new_qr_upload, name='qr_upload'), # qr_upload: localhost:8000/new_qr_upload
+    path('createCourse/', views.createCourse, name='create_course'),
+    path('createLecture/', views.createLecture, name='create_qr'),
+    path('createQRCodeUpload/', views.createQRCodeUpload, name='upload_qr'),
+    path('dumpUploads', views.dumpUploads, name='dump_uploads')
 ]
-

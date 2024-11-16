@@ -1,17 +1,28 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Upload QR Code</title>
-</head>
-<body>
-    <h1>Upload QR Code</h1>
-    <form action="/app/createQRCodeUpload" method="post" enctype="multipart/form-data">
-        {% csrf_token %}
-        <label for="image-upload">Upload QR Code Image:</label>
-        <input type="file" id="image-upload" name="imageUpload" accept="image/*" required><br><br>
+<!-- templates/home.html -->
+{% extends 'base.html' %}
 
-        <button type="submit">Upload</button>
+{% block title %}Sign Up!{% endblock %}
+
+{% block content %}
+{% if user.is_authenticated %}
+  
+  {% if is_student %}
+
+    <h2>Upload A QR Code</h2>
+
+    <h3>{{errors}}</h3>
+
+    <form action="http://localhost:8000/app/CreateQRcodeUpload" method="post" enctype="multipart/form-data">
+        <label for="imageUpload">Select an image:</label><br>
+        <input type="file" id="imageUpload" name="imageUpload" accept="image/*"><br><br>
+        <input type="submit" value="Upload Image">
     </form>
-</body>
-</html>
+</form>
+
+  {% else %}
+    
+    <h2>Only Students Can Upload</h2>
+{% endif %}
+
+{% endif %}
+{% endblock %}

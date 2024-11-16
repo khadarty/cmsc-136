@@ -1,53 +1,70 @@
 from django.db import models
-from django.contrib.auth.models import AbstractUser, Group, Permission
+from django.contrib.auth.models import User
 
-#Users (of type either instructor or students)
-#Courses (instructors teach these and students take these)
-#Lectures (particular days for each course)
-#QR Codes (uploads that are associated with lectures and students)
+class Student(models.Model):
+    student_id = models.CharField(max_length=10, unique=True, null=True)
+    name = models.CharField(max_length=100, null=True)
 
-# Create your models here.
-
-class User(AbstractUser):
-    class Role(models.TextChoices):
-        INSTRUCTOR = 'INSTRUCTOR', 'Instructor'
-        STUDENT = 'STUDENT', 'Student'
-    base_role = Role.STUDENT
-    role = models.CharField('Role', max_length = 50, choices = Role.choices)
-
-    groups = models.ManyToManyField(Group, related_name="custom_user_set", blank=True)
-    user_permissions = models.ManyToManyField(Permission, related_name="custom_user_permissions_set", blank=True)
+    def __str__(self):
+        return self.name
 
 
-    def save(self, *args, **kwargs):
-        if not self.pk:
-            self.role = self.base_role
-            return super().save(*args, **kwargs)
-        
-        
+class Instructor(models.Model):
+    instructor_id = models.CharField(max_length=10, unique=True, null=True)
+    name = models.CharField(max_length=100, null=True)
+
+    def __str__(self):
+        return self.name
+
 
 class Course(models.Model):
-    name = models.CharField(max_length=256, primary_key=True)
-    number = models.CharField(max_length=5)
-    instructor = models.ForeignKey(User, on_delete=models.CASCADE, limit_choices_to = {'role' : User.Role.INSTRUCTOR}, related_name="instructor_course")
-    students = models.ForeignKey(User, on_delete=models.CASCADE, limit_choices_to = {'role' : User.Role.STUDENT}, related_name="student_course") 
+    name = models.CharField(max_length=100, null=True)
+    #instructor = models.ForeignKey(Instructor, on_delete=models.CASCADE, related_name='courses', null=True)
+    start_time = models.TimeField(null=True)  # Field to store start time of the course
+    end_time = models.TimeField(null=True)    # Field to store end time of the course
+    days_of_week = models.CharField(max_length=100, null=True)    # Field to store days of the week as a comma-separated string
+
     def __str__(self):
         return self.name
 
 
 class Lecture(models.Model):
-    course = models.ForeignKey(Course, on_delete = models.CASCADE, related_name="lecture_for_course")
-    lecture_name = models.CharField(max_length=256)
-    lecture_date = models.DateTimeField(auto_now_add= True)
+    course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='lectures', null=True)
+    lecture_date = models.DateField(null=True)
 
     def __str__(self):
-        return f'{self.course.name}: {self.lecture_name}'
+        return self.course
 
 
-class QRCode(models.Model):
-    lectures = models.ForeignKey(Lecture, on_delete=models.CASCADE, related_name="lecture_qrcode")
-    student = models.ForeignKey(User, on_delete=models.CASCADE, limit_choices_to = {'role' : User.Role.STUDENT}, related_name="student_qrcode")
-    upload_time = models.DateTimeField(auto_now_add = True)
-    img = models.ImageField(upload_to='images/')
+class QR_Code(models.Model):
+    lecture = models.ForeignKey(Lecture, on_delete=models.CASCADE, related_name='qr_codes', null=True)
+    qr_image = models.ImageField(upload_to='', null=True)
+    #student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='qr_codes', null=True)
+    student = models.CharField(max_length=100, null=True)
+    timestamp = models.DateTimeField(auto_now_add=True)
+
     def __str__(self):
-        return f'{self.student}: {self.upload_time}'
+        return self.lecture
+
+
+class Attendance(models.Model):
+    student = models.ForeignKey(Student, on_delete=models.CASCADE)
+    lecture = models.ForeignKey(Lecture, on_delete=models.CASCADE)
+    qr_code = models.ForeignKey(QR_Code, on_delete=models.CASCADE)
+    upload_time = models.DateTimeField(auto_now_add=True)
+    valid = models.BooleanField(default=False)
+
+    class Meta:
+        unique_together = ('student', 'qr_code')
+
+    def __str__(self):
+        return self.valid
+    
+class UserProfile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    is_student = models.BooleanField(default=False)
+    #student = models.ForeignKey(Student, on_delete=models.SET_NULL, null=True, blank=True)
+    #instructor = models.ForeignKey(Instructor, on_delete=models.SET_NULL, null=True, blank=True)
+
+    def __str__(self):
+        return self.user.username

@@ -1,47 +1,42 @@
-<!-- templates/home.html -->
-{% extends 'base.html' %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Index</title>
+    <style>
+        
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 0;
+            padding: 20px;
+        }
+        .highlight {
+            font-weight: bold;
+            color: #d9534f;
+        }
+        .bio-section {
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Teammates</h1>
 
-{% block title %}Home{% endblock %}
+    {% for member in team_bio %}
+        <div class="bio-section">
+            <p>{{ member.Name }}: {{ member.Bio }}</p>
+        </div>
+    {% endfor %}
 
-{% block content %}
+    <div class="bio-section">
+      <p>Current User: <span class="highlight">{{ current_user.username }}</span></p>
+    </div>
 
-<style>
-  .centered-container {
-      display: flex;
-      flex-direction: column;
-      align-items: center; /* Horizontal centering */
-      justify-content: center; /* Vertical centering */
-      min-height: 100vh; /* Full viewport height */
-      text-align: center; /* Center text */
-  }
-
-  .highlighted-username {
-      font-weight: bold;
-      background-color: yellow;
-      padding: 0 5px;
-      border-radius: 3px;
-  }
-</style>
-
-<div class="centered-container">
-  
-  <div class="bio">
-    <p>{{ bio }}</p>
-  </div>
-
-
-  <div>
-    {% if user.is_authenticated %}
-      <p>Hi, <span class="highlighted-username">{{ user.username }}</span>!</p>
-    {% else %}
-      <p>You are not logged in</p>
-      <a href="{% url 'login' %}">Log In</a>
-    {% endif %}
-  </div>
-
-  
-  <div>
     <p>Current Time: {{ current_time }}</p>
-  </div>
-</div>
-{% endblock %}
+</body>
+</html>
