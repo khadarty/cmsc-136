@@ -135,3 +135,12 @@ def create_qr_upload(request):
         QRCodeUpload.objects.create(user=request.user, image=image)
         return JsonResponse({"status": "Upload created"}, status=201)
     return HttpResponse(status=405)
+
+
+@login_required
+def dump_uploads(request):
+    if not request.user.is_instructor:
+        return HttpResponse(status=401)
+    uploads = QRCodeUpload.objects.all()
+    data = [{"username": upload.user.username, "upload_time": upload.upload_time.strftime("%Y-%m-%d %H:%M:%S")} for upload in uploads]
+    return JsonResponse(data, safe=False)
