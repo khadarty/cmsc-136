@@ -164,16 +164,22 @@ def createCourse(request):
 def createLecture(request):
     if request.user.is_authenticated and hasattr(request.user, 'userprofile') and not request.user.userprofile.is_student:
         if request.method == "POST":
-            name = request.POST.get("choice")
+            name = request.POST.get("choice")  # Course name
+            qrdata = request.POST.get("qrdata")  # Optional QR data
+            
             if name:
+                # Generate random QR data if none is provided
+                if not qrdata:
+                    qrdata = ''.join(random.choices(string.ascii_letters + string.digits, k=16))
+
                 # Retrieve the course and create a new lecture associated with it
                 try:
                     course = Course.objects.get(name=name)
-                    lecture = Lecture(course=course)
+                    lecture = Lecture(course=course, qrdata=qrdata)  # Save qrdata in the lecture
                     lecture.save()
-                    return JsonResponse({"success": "Lecture created successfully"}, status=200)
+                    return JsonResponse({"success": "Lecture created successfully", "qrdata": qrdata}, status=200)
                 except Course.DoesNotExist:
-                    return JsonResponse({"error": "Internal server error"}, status=500)
+                    return JsonResponse({"error": "Course does not exist"}, status=404)
 
             return JsonResponse({"error": "All fields are required."}, status=400)
 
@@ -203,14 +209,14 @@ def createQRCodeUpload(request):
 
 
 def dumpUploads(request):
-    # Check if the user is logged in
+
     if not request.user.is_authenticated:
-        # Return 401 if not authenticated
+
         return HttpResponse("", status=401)
 
-    # Check if the user is an instructor
+    # check if the user is an instructor
     if hasattr(request.user, 'userprofile') and not request.user.userprofile.is_student:
-        # Retrieve all uploads and create the list of dictionaries
+        # retrieve all uploads and create the list of dictionaries
         obj = [
             {
                 "name": request.user.username,  # Adjust if your model stores the username differently
@@ -219,8 +225,29 @@ def dumpUploads(request):
             for upload in QR_Code.objects.all()
         ]
         
-        # Return the list in JSON format
+        # return the list in JSON format
         return JsonResponse(obj, safe=False)
     
-    # Return 401 if the user is not an instructor
+    # return 401 if the user is not an instructor
     return HttpResponse("", status=401)
+
+def getUploads(request):
+    # check for 'course' parameter
+    course_id = request.GET.get('course')
+    if not course_id:
+        return JsonResponse({'error': 'Course ID is required'}, status=400)
+    
+    try:
+        # call the helper function to get attendance data
+        uploads = getUploadsForCourse(course_id)
+        
+        # format data as  list of dictionaries
+        response_data = [
+            {'username': upload['username'], 'upload_time_as_string': str(upload['upload_time'])}
+            for upload in uploads
+        ]
+        return JsonResponse(response_data, safe=False)
+    except ObjectDoesNotExist:
+        return JsonResponse({'error': 'Invalid course ID or no data found'}, status=404)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)

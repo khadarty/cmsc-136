@@ -15,5 +15,6 @@ urlpatterns = [
     path('createCourse/', views.createCourse, name='create_course'),
     path('createLecture/', views.createLecture, name='create_qr'),
     path('createQRCodeUpload/', views.createQRCodeUpload, name='upload_qr'),
-    path('dumpUploads', views.dumpUploads, name='dump_uploads')
+    path('dumpUploads', views.dumpUploads, name='dump_uploads'), 
+    path('getUploads', views.getUploads, name = 'getUploads'),
 ]
