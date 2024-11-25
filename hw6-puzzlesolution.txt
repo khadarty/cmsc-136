@@ -1,0 +1,23 @@
+I broke it up into steps and split the work up into three separate python scripts. First I found the nine-digit number, 294644421, by using ChatGPT to
+write a python script that generated a list of all 1 billion possibilities of nine-digit numbers, combined them with a word in a text file, hashed the 
+combination, and compared it to the hashes in the puzzle. I knew this brute-force method would take a long time, so I made sure that the code iterated by
+each word in the text file and then attempted a hash with each of the 1 billion possibilities. The function broke once a match was found. It took about 15 
+minutes to run on my Macbook Pro. I used the freq.txt file linked in the ed post to do this (the first word in this file is 'the'). 
+Then, I used more .txt files in the GitHub repo to help decode the rest of the message using the nine-digit number. 
+
+Then I got here:
+ON [UNKNOWN] [UNKNOWN] [UNKNOWN] The primroses were [UNKNOWN] [UNKNOWN] the edge of the [UNKNOWN] where the ground became open and sloped down to an old 
+fence and a brambly ditch [UNKNOWN] only a few fading [UNKNOWN] of pale yellow still showed among the dog's mercury and [UNKNOWN] [UNKNOWN]
+
+At this point, I googled the passage and found that it was the first paragraph of Watership Down by Richard Adams. So I created a new text file and 
+filled in the rest of the message with what I found online and also guessed the rest of the first portion ('ON THE RIGHT TRACK') of the message until 
+I figured that part out. I was then left with one unknown word "patches." So I generated another python script to create a text file with all of the 
+possible misspellings of the word "patches" with an edit distance of 2. I added this to the list of text files with words to try and found that the misspelled
+word was 'pacthes.'
+
+Here is the full decoded message:
+ON THE RIGHT TRACK The primroses were over. 
+Towards the edge of the wood, where the ground became open and sloped down to an old fence and a brambly ditch beyond, 
+only a few fading pacthes of pale yellow still showed among the dog's mercury and oak-tree roots.
+
+In all this probably took me about an hour to do. 
