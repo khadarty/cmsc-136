@@ -168,14 +168,14 @@ def createLecture(request):
             qrdata = request.POST.get("qrdata")  # Optional QR data
             
             if name:
-                # Generate random QR data if none is provided
+                
                 if not qrdata:
                     qrdata = ''.join(random.choices(string.ascii_letters + string.digits, k=16))
 
-                # Retrieve the course and create a new lecture associated with it
+                
                 try:
                     course = Course.objects.get(name=name)
-                    lecture = Lecture(course=course, qrdata=qrdata)  # Save qrdata in the lecture
+                    lecture = Lecture(course=course, qrdata=qrdata)  
                     lecture.save()
                     return JsonResponse({"success": "Lecture created successfully", "qrdata": qrdata}, status=200)
                 except Course.DoesNotExist:
@@ -183,8 +183,8 @@ def createLecture(request):
 
             return JsonResponse({"error": "All fields are required."}, status=400)
 
-        # If GET request, fetch all courses and display the form
-        courses = Course.objects.all()  # Adjust query if only certain courses should be shown
+       
+        courses = Course.objects.all()  
         return render(request, 'app/new_lecture.html', {'courses': courses})
 
     return HttpResponse("Unauthorized", status=401)
@@ -195,7 +195,7 @@ def createQRCodeUpload(request):
     if request.user.is_authenticated and hasattr(request.user, 'userprofile') and request.user.userprofile.is_student:
         if request.method == "POST" and request.FILES.get("imageUpload"):
             image = request.FILES["imageUpload"]
-            # Optionally, save file to a specific location
+          
             file_path = default_storage.save(f"uploads/{image.name}", image)
             
             # Save file information to QRCodeUpload model (adjust fields as needed)
